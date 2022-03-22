@@ -778,13 +778,16 @@ def character_ratio(style, character):
     layout.set_text(character)
     line, _ = layout.get_first_line()
 
-    ink_extents = ffi.new('PangoRectangle *')
-    pango.pango_layout_line_get_extents(line, ink_extents, ffi.NULL)
+    logical_extents = ffi.new('PangoRectangle *')
+    pango.pango_layout_line_get_extents(line, ink_extents, logical_extents)
     if character == 'x':
         measure = -units_to_double(ink_extents.y)
     else:
-        measure = units_to_double(ink_extents.width)
+        # TODO: incorporate letter-spacing value here, if we could be sure it
+        # wouldn't be recursive.
+        measure = units_to_double(logical_extents.width)
     ffi.release(ink_extents)
+    ffi.release(logical_extents)
 
     # Zero means some kind of failure, fallback is 0.5.
     # We round to try keeping exact values that were altered by Pango.
